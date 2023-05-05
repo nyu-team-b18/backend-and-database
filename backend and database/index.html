@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Hello, Adventure</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inconsolata">
+<link rel="stylesheet" href="./style.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+<script src="settings.js"></script>
+</head>
+<body>
+
+<!-- Links (sit on top) -->
+<div class="w3-top">
+    <div id="bar-items" class="w3-row w3-black w3-container w3-center w3-padding-16 w3-large">
+        <a href="#top" class="w3-button w3-inline w3-black w3-padding w3-margin-right">HOME</a>
+        <button id="logout" class="guest-content admin-content student-content w3-button w3-inline w3-black w3-padding w3-margin-left">LOGOUT</button>
+        <a href="#about" class="none-content w3-button w3-inline w3-black w3-padding w3-margin-left">ABOUT</a>
+    </div>
+</div>
+
+<!-- Header with image -->
+<header style="min-height: 50%" class="bgimg w3-display-container w3-grayscale-min" id="home" hidden>
+
+  <div class="admin-content w3-display-middle w3-center d-flex align-center">
+    <span class="w3-text-white" style="font-size:75px">WELCOME BACK,<br>ADMIN</span>
+  </div>
+
+  <div class="student-content w3-display-middle w3-center d-flex align-center">
+    <span class="w3-text-white" style="font-size:75px">WELCOME BACK,<br>STUDENT</span>
+  </div>
+
+  <div class="guest-content w3-display-middle w3-center d-flex align-center">
+    <span class="w3-text-white" style="font-size:75px">WELCOME BACK<br>GUEST</span>
+  </div>
+
+  <div class="none-content w3-display-middle w3-center">
+    <span class="w3-text-white" style="font-size:75px">HELLO, ADVENTURE</span>
+  </div>
+</header>
+
+<!-- Add a background color and large text to the whole page -->
+<div class="w3-sand w3-grayscale w3-large">
+
+<div class="w3-display-container w3-center" id="content" hidden>
+
+    <div class="admin-content d-flex justify-evenly">
+      <a style="width: 15%; aspect-ratio: 1 / 1;" class="w3-center card w3-black w3-hover-blue w3-margin" href="classlist.html">YOUR<br>CLASS</a>
+      <a style="width: 15%; aspect-ratio: 1 / 1;" class="w3-center card w3-black w3-hover-blue w3-margin" href="profile.html">YOUR<br>PROFILE</a>
+    </div>
+
+    <div class="student-content d-flex justify-evenly">
+        <a style="width: 15%; aspect-ratio: 1 / 1;" class="w3-center card w3-black w3-hover-blue w3-margin" href="#">RESUME STORY</a>
+        <a style="width: 15%; aspect-ratio: 1 / 1;" class="w3-center card w3-black w3-hover-blue w3-margin" href="studentAssignments.html">YOUR<br>CLASS</a>
+        <a style="width: 15%; aspect-ratio: 1 / 1;" class="w3-center card w3-black w3-hover-blue w3-margin" href="profile.html">YOUR<br>PROFILE</a>
+    </div>
+
+    <div class="guest-content d-flex justify-evenly">
+        <a style="width: 15%; aspect-ratio: 1 / 1;" class="w3-center card w3-black w3-hover-blue w3-margin" href="classlist.html">YOUR<br>CLASS</a>
+        <a style="width: 15%; aspect-ratio: 1 / 1;" class="w3-center card w3-black w3-hover-blue w3-margin" href="profile.html">YOUR<br>PROFILE</a>
+    </div>
+
+    <div class="none-content w3-content d-flex justify-center w3-padding" style="max-width:60%;">
+      <div class="d-flex-col justify-center align-center" style="width: 60%; padding: 0; margin: 0;">
+        <h5 class="w3-center w3-padding-16 w3-xlarge"><span class="w3-tag w3-wide w3-padding">JOIN THE ADVENTURE</span></h5>
+        <p id="status" class="w3-padding w3-red w3-center" hidden>USERNAME OR PASSWORD INCORRECT</p>
+        <form id="login" class="separate-children" style="width: 100%;" onsubmit="return false">
+            <label for="username">USERNAME</label><br>
+            <input style="min-width:45%" type="text" id="username" name="username" required><br>
+            <label for="password">PASSWORD</label><br>
+            <input style="min-width:45%" type="password" id="password" name="password" required><br>
+            <input style="min-width: 20%;" type="submit" value="SIGN IN">
+            <a class="w3-white w3-border w3-hover-gray w3-hover-text-white w3-padding" href="./registration.html">Register</a>
+        </form>
+      </div>
+    </div>
+</div>
+
+<!-- About Container -->
+<div class="w3-container" id="about" hidden>
+  <div class="w3-content" style="max-width:50%">
+    <h5 class="w3-center w3-padding-64"><span class="w3-tag w3-wide">ABOUT HELLO ADVENTURE</span></h5>
+    <p>The Cafe was founded in blabla by Mr. Smith in lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+    <p>In addition to our full espresso and brew bar menu, we serve fresh made-to-order breakfast and lunch sandwiches, as well as a selection of sides and salads and other good stuff.</p>
+    <div class="w3-panel w3-leftbar w3-light-grey">
+      <p><i>"Use products from nature for what it's worth - but never too early, nor too late." Fresh is the new sweet.</i></p>
+      <p>Chef, Coffeeist and Owner: Liam Brown</p>
+    </div>
+    <img style="width:100%;max-width:1000px" class="w3-margin-top">
+    <p><strong>Opening hours:</strong> everyday from 6am to 5pm.</p>
+    <p><strong>Address:</strong> 15 Adr street, 5015, NY</p>
+  </div>
+</div>
+
+<!-- End page content -->
+</div>
+
+<!-- Footer -->
+<footer class="w3-center w3-light-grey w3-padding-16 w3-large">
+  <p>Hello, Adventure</p>
+  <p>2023</p>
+</footer>
+</body>
+</html>
+
+<script>
+  $(document).ready(async function() {
+    // Get the account type & update the page
+    await fetch(LOCALHOST + SERVER_PORT + '/getAccountType')
+    .then(response => response.json())
+    .then(data => {
+      // Get respective content & hide all of it
+      $admin = $(".admin-content")
+      $student = $(".student-content")
+      $guest = $(".guest-content")
+      $none = $(".none-content")
+
+      $admin.hide()
+      $student.hide()
+      $guest.hide()
+      $none.hide()
+      
+      // Reveal the content corresponding to the user account type
+      if(data['account-type'] === 'STUDENT') {
+        $student.show()
+      }
+      else if(data['account-type'] === 'ADMIN') {
+        $admin.show()
+      }
+      else if(data['account-type'] === 'GUEST') {
+        $guest.show()
+      }
+      else {
+        $about = $("#about")
+        $about.show()
+        $none.show()
+      }
+
+      // Reveal the page
+      $("#home").show()
+      $("#content").show()
+    })
+
+
+    // Check if an error occurred
+    var url = window.location.href
+    if(url.indexOf("?error=true") != -1)
+        $("#status").show()
+    
+    $("#login").on('submit', async function() {
+        // Get all the forms elements and their values in one step
+        let $username = $(this).find('input[name="username"]')
+        let $password = $(this).find('input[name="password"]')
+        
+        // Store inputs in an object
+        var inputValues = {
+            "username":$username.val(),
+            "password":$password.val(),
+        } 
+
+        // Resetting input fields
+        $username.val("")
+        $password.val("")
+
+        // POST request to attempt login
+        await fetch(LOCALHOST + SERVER_PORT + '/verifyLogin', {
+                method: "POST",
+                headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(inputValues)
+        })
+        .then(response => {
+            // Check if login was successful
+            if(response.status === 409) {
+                window.location = LOCALHOST + CLIENT_PORT + '/?error=true'
+            } else {
+                window.location = LOCALHOST + CLIENT_PORT
+            }
+        })
+    })
+
+    // Function for logging out of session
+    $("#logout").on("click", async function() {
+      // Sending request
+      await fetch(LOCALHOST + SERVER_PORT + "/logout", {
+        method: "POST"
+      })
+      .then(response => {
+        // Redirecting to home
+        window.location = LOCALHOST + CLIENT_PORT
+      })
+    })
+
+  })
+</script>

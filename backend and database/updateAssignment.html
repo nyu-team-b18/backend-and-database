@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Hello, Adventure</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inconsolata">
+<link rel="stylesheet" href="./style.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+<script src="settings.js"></script>
+</head>
+<body>
+    
+<!-- Links (sit on top) -->
+<div class="w3-top">
+    <div class="w3-row w3-black w3-container w3-center w3-padding-16 w3-large">
+        <a href="/" class="w3-button w3-inline w3-black w3-padding w3-margin-right">HOME</a>
+        <button id="logout" class="w3-button w3-inline w3-black w3-padding w3-margin-left">LOGOUT</button>
+    </div>
+</div>
+
+<!-- Header with image -->
+<header style="min-height: 40%; margin-top: 2%;" class="bgimg w3-display-container w3-grayscale-min" id="home">
+  <div class="w3-display-middle w3-center">
+    <span id="assignment-title" class="w3-text-white" style="font-size:75px"></span>
+  </div>
+</header>
+
+<!-- Add a background color and large text to the whole page -->
+<div class="w3-sand w3-grayscale w3-large">
+
+<div class="w3-container d-flex justify-center" id="menu">
+    <form id="update-form" class="w3-content w3-half" onsubmit="return false">
+        <div class="assignment-create d-flex-col justify-center separate-children">
+            <label for="desc" class="w3-xxlarge w3-black w3-padding">Assignment Description</label>
+            <textarea id="desc" name="desc" style="resize: none" maxlength="500"></textarea>
+            <div style="padding: 0" class="d-flex justify-between">
+                <div style="margin: 0; min-width: 45%;" class="d-flex-col w3-full">
+                    <label for="world" style="margin-bottom: 6px" class="w3-xxlarge w3-black w3-padding">World</label>
+                    <input type="number" id="world" name="world">
+                </div>
+                <div style="margin: 0; min-width: 45%;" class="d-flex-col w3-full">
+                    <label for="level" style="margin-bottom: 6px" class="w3-xxlarge w3-black w3-padding">Level</label>
+                    <input type="number" id="level" name="level">
+                </div>
+            </div>
+            <label for="date" class="w3-xxlarge w3-black w3-padding">Due Date</label>
+            <input type="date" id="date" name="date" value="2012-12-02">
+        </div>
+        <div class="assignment-create-buttons d-flex justify-evenly w3-margin">
+            <a class="w3-margin w3-padding-16" href="/assignmentList.html">Cancel</a>
+            <input class="w3-margin w3-padding-16" type="submit" value="Update">
+        </div>
+    </form>
+</div>
+
+<!-- End page content -->
+</div>
+
+<!-- Footer -->
+<footer class="w3-center w3-light-grey w3-padding-16 w3-large">
+    <p>Hello, Adventure</p>
+    <p>2023</p>
+</footer>
+</body>
+</html>
+
+<script>
+    $(document).ready(async function() {
+        // Get the assignment being queried
+        var url = window.location.href
+        var assignment = url.split("?")[1]
+        
+        // Get assignment details
+        await fetch(LOCALHOST + SERVER_PORT + `/getAssignmentDetails?${assignment}`)
+            .then(response => response.json())
+            .then(data => {
+                // Display the details
+                $("#assignment-title").text(data['title'])
+                $("#desc").text(data['description'])
+                $("#date").val(data['date'])
+                $("#world").val(data['world'])
+                $("#level").val(data['level'])
+            })
+        
+        // Update event
+        $("#update-form").on("submit", async function() {
+            // Get form information
+            let $title = $("#assignment-title")
+            let $description = $(this).find('textarea[name="desc"]')
+            let $date = $(this).find('input[name="date"]')
+            let $world = $(this).find('input[name="world"]')
+            let $level = $(this).find('input[name="level"]')
+            
+            // Store inputs in an object
+            var inputValues = {
+                "title": $title.text(),
+                "description": $description.val(),
+                "date": $date.val(),
+                "world": $world.val(),
+                "level": $level.val()
+            } 
+
+            // POST new information to server
+            await fetch(LOCALHOST + SERVER_PORT + '/updateAssignment', {
+                method: "POST",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(inputValues)
+            })
+            .then(response => {
+                // Redirect
+                window.location = LOCALHOST + CLIENT_PORT + '/assignmentList.html'
+            })
+        })
+    })
+</script>

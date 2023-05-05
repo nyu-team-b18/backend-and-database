@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Hello, Adventure</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inconsolata">
+<link rel="stylesheet" href="./style.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+<script src="settings.js"></script>
+</head>
+<body>
+
+<!-- Links (sit on top) -->
+<div class="w3-top">
+    <div class="w3-row w3-black w3-container w3-center w3-padding-16 w3-large">
+        <a href="/" class="w3-button w3-inline w3-black w3-padding w3-margin-right">HOME</a>
+        <button id="logout" class="w3-button w3-inline w3-black w3-padding w3-margin-left">LOGOUT</button>
+    </div>
+</div>
+
+<!-- Header with image -->
+<header style="min-height: 30%; margin-top: 2%;" class="d-flex align-center bgimg w3-display-container w3-grayscale-min" id="home">
+    <div class="w3-display-middle w3-center d-flex align-center">
+      <span class="w3-text-white" style="font-size:75px">YOUR CLASS</span>
+    </div>
+</header>
+
+<!-- Add a background color and large text to the whole page -->
+<div class="w3-sand w3-grayscale w3-large">
+
+<div class="w3-container d-flex-col align-center">
+    <h1 class="w3-black w3-padding d-flex justify-center" style="min-width: 20%;">Assignments</h1>
+    <div id="assignments" class="w3-twothird d-flex-col justify-center align-center">
+    </div>
+    <div class="d-flex justify-evenly">
+        <a class="assignment-button w3-margin w3-padding" href="./classlist.html">Back</a> 
+        <a class="assignment-button w3-margin w3-padding" href="./createAssignment.html">Create New Assignment</a> 
+    </div>
+</div>
+
+<!-- End page content -->
+</div>
+
+<!-- Footer -->
+<footer class="w3-center w3-light-grey w3-padding-16 w3-large">
+    <p>Hello, Adventure</p>
+    <p>2023</p>
+</footer>
+</body>
+</html>
+
+<script>
+    $(document).ready(async function() {
+        // Get all assignments 
+        await fetch(LOCALHOST + SERVER_PORT + '/getAssignments')
+        .then(response => response.json())
+        .then(data => {
+            // Create a new div for each assignment
+            $assignments = $("#assignments")
+            data['assignments'].forEach(element => {
+                $assignments.append(
+                    `<div class="assignment-update d-flex justify-center align-center">
+                        <div class="w3-xxlarge w3-padding d-flex align-center">
+                            ${element} 
+                        </div>
+                        <button class="update-button w3-xlarge" data-assignment="${element}">Update</button>
+                    </div>`
+                )
+            })        
+        })
+
+        // Update event
+        $(".update-button").click(function() {
+            // Redirect with query
+            window.location = LOCALHOST + CLIENT_PORT + `/updateAssignment.html?assignment=${$(this).data('assignment')}`
+        })
+
+        // Function for logging out of session
+        $("#logout").on("click", async function() {
+            // Sending request
+            await fetch(LOCALHOST + SERVER_PORT + "/logout", {
+                method: "POST"
+            })
+            .then(response => {
+                // Redirecting to home
+                window.location = LOCALHOST + CLIENT_PORT
+            })
+        })
+
+    })
+  </script>

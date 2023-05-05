@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Hello, Adventure</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inconsolata">
+<link rel="stylesheet" href="./style.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+<script src="settings.js"></script>
+</head>
+<body>
+
+<!-- Links (sit on top) -->
+<div class="w3-top">
+    <div class="w3-row w3-black w3-container w3-center w3-padding-16 w3-large">
+        <a href="/" class="w3-button w3-inline w3-black w3-padding w3-margin-right">HOME</a>
+        <a href="/#about" class="w3-button w3-inline w3-black w3-padding w3-margin-left">ABOUT</a>
+    </div>
+</div>
+
+<!-- Header with image -->
+<header style="min-height: 40%; margin:0;" class="bgimg w3-display-container w3-grayscale-min" id="home">
+  <div class="w3-display-middle w3-center d-flex align-center">
+    <span class="w3-text-white d-flex align-center" style="font-size:75px">REGISTER</span>
+  </div>
+</header>
+<!-- Add a background color and large text to the whole page -->
+<div style="margin:0" class="w3-sand w3-grayscale w3-large">
+    <h1 class="w3-center w3-padding"><span class="w3-padding w3-tag w3-wide">ACCOUNT TYPE</span></h1>
+    <p id="status" class="w3-padding w3-red w3-center" hidden>Account already exists</p>
+    <div class="d-flex justify-evenly">
+        <a data-account-type="admin" style="width: 15%; aspect-ratio: 1 / 1;" class="reg-option w3-center card w3-black w3-hover-blue w3-margin">ADMIN</a>
+        <a data-account-type="student" style="width: 15%; aspect-ratio: 1 / 1;" class="reg-option w3-center card selected w3-hover-blue w3-margin" >STUDENT</a>
+        <a data-account-type="guest" style="width: 15%; aspect-ratio: 1 / 1;" class="reg-option w3-center card w3-black w3-hover-blue w3-margin">GUEST</a>
+    </div>
+    <div class="w3-container d-flex justify-center w3-padding-64 w3-margin">
+        <div class="account-area w3-quarter" id="admin-option" hidden>
+            <form class="reg-details d-flex-col align-center" onsubmit="return false">
+                <div style="width: 100%">
+                    <input type="hidden" name="accountType" value="admin">
+                    <label for="email">EMAIL</label><br>
+                    <input style="width:100%" type="text" name="email" required><br>
+                    <label for="username">USERNAME</label><br>
+                    <input style="width:100%" type="text" name="username" required><br>
+                    <label for="password">PASSWORD</label><br>
+                    <input style="min-width:100%" type="password" name="password" required><br>
+                    <label for="student-group">STUDENT-GROUP</label><br>
+                    <input style="min-width:100%" type="text" name="student-group" required><br>
+                </div>
+                <button style="width: 30%; aspect-ratio: 2/1;" class="w3-xlarge" type="submit">SUBMIT</button>
+            </form>
+        </div>
+        <div class="account-area w3-quarter" id="student-option">
+            <form class="reg-details d-flex-col align-center" onsubmit="return false">
+                <div style="width: 100%">
+                    <input type="hidden" name="accountType" value="student">
+                    <label for="email">EMAIL</label><br>
+                    <input style="width:100%" type="text" name="email" required><br>
+                    <label for="username">USERNAME</label><br>
+                    <input style="width:100%" type="text" name="username" required><br>
+                    <label for="password">PASSWORD</label><br>
+                    <input style="min-width:100%" type="password" name="password" required><br>
+                    <label for="student-group">STUDENT GROUP</label><br>
+                    <input style="min-width:100%" type="text" name="student-group" required><br>
+                </div>
+                <button style="width: 30%; aspect-ratio: 2/1;" class="w3-xlarge" type="submit">SUBMIT</button>
+            </form>
+        </div>
+        <div class="account-area w3-quarter" id="guest-option" hidden>
+            <form class="reg-details d-flex-col align-center" onsubmit="return false">
+                <div style="width: 100%">
+                    <input type="hidden" name="accountType" value="admin">
+                    <label for="email">EMAIL</label><br>
+                    <input style="width:100%" type="text" name="email" required><br>
+                    <label for="username">USERNAME</label><br>
+                    <input style="width:100%" type="text" name="username" required><br>
+                    <label for="password">PASSWORD</label><br>
+                    <input style="min-width:100%" type="password" name="password" required><br>
+
+                </div>
+                <button style="width: 30%; aspect-ratio: 2/1;" class="w3-xlarge" type="submit">SUBMIT</button>
+            </form>
+        </div>
+    </div>
+<!-- End page content -->
+</div>
+
+<!-- Footer -->
+<footer class="w3-center w3-light-grey w3-padding-16 w3-large">
+    <p>Hello, Adventure</p>
+    <p>2023</p>
+</footer>
+</body>
+</html>
+
+<script>
+    $(document).ready(() => {
+
+        // Check if an error occured
+        var url = window.location.href
+        if(url.indexOf("?error=") != -1) {
+            let message = decodeURI(url.split("?error=")[1])
+            $("#status").text(message)
+            $("#status").show()
+        }
+
+
+        $(".reg-option").on('click', function() {
+            // Switch which option is selected
+            $(".account-area").hide();
+            $(".reg-option").removeClass("selected").addClass("w3-black")
+            $("#" + $(this).data("accountType") + "-option").show();
+            $(this).removeClass("w3-black").addClass("selected")
+        })
+        
+        $(".reg-details").on('submit', async function() {
+            // Get all the forms elements and their values in one step
+            let type = $(this).find('input[name="accountType"]').val()
+            let $email = $(this).find('input[name="email"]')
+            let $username = $(this).find('input[name="username"]')
+            let $password = $(this).find('input[name="password"]')
+            let $confirm = $(this).find('input[name="password-confirm"]')
+            
+            // Store inputs in an object
+            var inputValues = { 
+                "account-type":type,
+                "email":$email.val(),
+                "username":$username.val(),
+                "password":$password.val(),
+                "password-confirm":$confirm.val()
+            } 
+
+            // Reset input fields
+            $email.val("")
+            $username.val("")
+            $password.val("")
+            $confirm.val("")
+
+            // Check if we need to add the class code to the account type
+            if(type === "student") {
+                let $admin = $(this).find('input[name="admin-username"]')
+                inputValues["admin-username"] = $admin.val()
+                $admin.val("")
+            }
+
+            // POST request to make new account
+            await fetch(LOCALHOST + SERVER_PORT + '/verifyRegistration', {
+                method: "POST",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(inputValues)
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Check if POST was successful
+                if(data['result'] === "FAIL") {
+                    let msg = data['message']
+                    window.location = LOCALHOST + CLIENT_PORT + '/registration.html?error=' + encodeURI(msg)
+                }
+                else {
+                    window.location = LOCALHOST + CLIENT_PORT
+                }
+            })
+        })
+
+        // Function for logging out of session
+        $("#logout").on("click", async function() {
+            // Sending request
+            await fetch(LOCALHOST + SERVER_PORT + "/logout", {
+                method: "POST"
+            })
+            .then(response => {
+                // Redirecting to home
+                window.location = LOCALHOST + CLIENT_PORT
+            })
+        })
+    })
+</script>

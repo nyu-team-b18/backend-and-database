@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Hello, Adventure</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inconsolata">
+<link rel="stylesheet" href="./style.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+<script src="settings.js"></script>
+
+</head>
+<body>
+
+<!-- Links (sit on top) -->
+<div class="w3-top">
+    <div class="w3-row w3-black w3-container w3-center w3-padding-16 w3-large">
+        <a href="/" class="w3-button w3-inline w3-black w3-padding w3-margin-right">HOME</a>
+        <button id="logout" class="w3-button w3-inline w3-black w3-padding w3-margin-left">LOGOUT</button>
+    </div>
+</div>
+
+<!-- Header with image -->
+<header style="min-height: 30%; margin-top: 2%;" class="d-flex align-center bgimg w3-display-container w3-grayscale-min" id="home">
+    <div class="w3-display-middle w3-center d-flex align-center">
+      <span class="w3-text-white" style="font-size:75px">STUDENT PROFILE</span>
+    </div>
+</header>
+
+<!-- Add a background color and large text to the whole page -->
+<div class="w3-sand w3-grayscale w3-large">
+    <div class="w3-container d-flex justify-center">
+        <div class="w3-twothird d-flex justify-evenly align-center w3-padding-32"> 
+            <div class="w3-deep-purple icon"></div>
+            <form class="profile-info">
+                <label for="username">Student Username</label><br>
+                <textarea id="username" name="name" style="resize: none" readonly></textarea>
+                <label for="name">Student Name</label><br>
+                <textarea id="name" name="name" style="resize: none" readonly></textarea>
+                <label for="email">Student Email</label><br>
+                <textarea id="email" name="email" style="resize: none" readonly></textarea>
+            </form>
+        </div>
+    </div>
+    <div class="w3-container d-flex justify-center">
+        <form class="profile-bio">
+            <label for="bio">Student Bio</label><br>
+            <textarea id="bio" name="bio" style="resize: none" maxlength="200" readonly></textarea>
+        </form>
+    </div>
+    <h1 class="w3-black w3-padding d-flex justify-center" style="min-width: 20%;">Completed Assignments</h1>
+    <div class="w3-container d-flex-col align-center">
+        <div class="assignments-list w3-twothird d-flex-col justify-center align-center">
+        </div>
+        <button class="drop-button w3-margin w3-xlarge d-flex justify-center w3-padding">Drop Student</button>
+    </div>
+</div>
+
+<!-- Footer -->
+<footer class="w3-center w3-light-grey w3-padding-16 w3-large">
+    <p>Hello, Adventure</p>
+    <p>2023</p>
+</footer>
+</body>
+</html>
+
+<script>
+    $(document).ready(async function() {
+        // Get the username queried
+        var url = window.location.href
+        var username = url.split("?")[1]
+
+        // Get the student information
+        await fetch(LOCALHOST + SERVER_PORT +'/getStudentInformation?'+username)
+        .then(response => response.json())
+        .then(data => {
+            // Display the student information
+            let username = data['username']
+            let name = data['name']
+            let email = data['email']
+            let bio = data['bio']
+
+            $("#username").val(username)
+            $("#name").val(name)
+            $("#email").val(email)
+            $("#bio").val(bio)
+
+            // Create a div for each assignment the student has completed
+            data['assignments'].forEach(assignment => {
+                $('.assignments-list').append(
+                    `<div class="w3-xxlarge w3-padding d-flex align-center">
+                        ${assignment}
+                    </div>`
+                )
+            })
+        })
+
+        // Drop event
+        $(".drop-button").on("click", async function() {
+            // Get the student username
+            let username = $("#username").val()
+
+            // Drop the student from the class
+            await fetch(LOCALHOST + SERVER_PORT + '/dropStudent', {
+                method: "POST",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({'username': username})
+            })
+            .then(response => {
+                // Redirect
+                window.location = LOCALHOST + CLIENT_PORT + "/classlist.html"
+            })
+        })
+
+        // Function for logging out of session
+        $("#logout").on("click", async function() {
+            // Sending request
+            await fetch(LOCALHOST + SERVER_PORT + "/logout", {
+                method: "POST"
+            })
+            .then(response => {
+                // Redirecting to home
+                window.location = LOCALHOST + CLIENT_PORT
+            })
+        })
+    })
+</script>

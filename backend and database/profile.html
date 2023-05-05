@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Hello, Adventure</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inconsolata">
+<link rel="stylesheet" href="./style.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+<script src="settings.js"></script>
+
+</head>
+<body>
+
+<!-- Links (sit on top) -->
+<div class="w3-top">
+    <div class="w3-row w3-black w3-container w3-center w3-padding-16 w3-large">
+        <a href="/" class="w3-button w3-inline w3-black w3-padding w3-margin-right">HOME</a>
+        <button id="logout" class="w3-button w3-inline w3-black w3-padding w3-margin-left">LOGOUT</button>
+    </div>
+</div>
+
+<!-- Header with image -->
+<header style="min-height: 30%; margin-top: 2%;" class="d-flex align-center bgimg w3-display-container w3-grayscale-min" id="home">
+    <div class="w3-display-middle w3-center d-flex align-center">
+      <span class="w3-text-white" style="font-size:90px">YOUR PROFILE</span>
+    </div>
+</header>
+
+<!-- Add a background color and large text to the whole page -->
+<div class="w3-sand w3-grayscale w3-large">
+    <div class="w3-container d-flex justify-center">
+        <form style="min-width: 100%;" class="d-flex-col align-center w3-full" onsubmit="return false">
+            <div class="w3-twothird d-flex justify-evenly align-content w3-padding-32">
+                <div class="w3-deep-purple icon"></div>
+                <div class="profile-info">
+                    <label for="username">Username</label><br>
+                    <textarea id="username" name="name" style="resize: none" readonly>UserName1171</textarea>
+                    <label for="name">Your Name</label><br>
+                    <textarea id="name" name="name" style="resize: none">Johnathan Dope</textarea>
+                    <label for="email">Your Email</label><br>
+                    <textarea id="email" name="email" style="resize: none">johnnydoe11@gmail.com</textarea>
+                </div>
+            </div>
+            <div class="profile-bio">
+                <label for="bio">Your Bio</label><br>
+                <textarea id="bio" name="bio" style="resize: none" maxlength="200">Hey, this is my super cool bio!</textarea>
+            </div>
+            <div class="profile-buttons d-flex justify-center w3-padding-32">
+                <button id="update">Update Account</button>
+                <button id="delete">Delete Account</button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+<!-- Footer -->
+<footer class="w3-center w3-light-grey w3-padding-16 w3-large">
+    <p>Hello, Adventure</p>
+    <p>2023</p>
+</footer>
+</body>
+</html>
+
+<script>
+    $(document).ready(async function() {
+        // Get profile information
+        await fetch(LOCALHOST + SERVER_PORT +'/getProfile')
+        .then(response => response.json())
+        .then(data => {
+            // Display profile information
+            let username = data['username']
+            let name = data['name']
+            let email = data['email']
+            let bio = data['bio']
+
+            $("#username").val(username)
+            $("#name").val(name)
+            $("#email").val(email)
+            $("#bio").val(bio)
+        })
+
+        // On update event
+        $("#update").on("click", async function() {
+            // Get the new profile information
+            let name = $("#name").val()
+            let email = $("#email").val()
+            let bio = $("#bio").val()
+
+            // Storing the inputs
+            let inputValues = {
+                'name': name,
+                'email': email,
+                'bio': bio
+            }
+
+            // POST changes to server
+            await fetch(LOCALHOST + SERVER_PORT + '/updateProfile', {
+                method: "POST",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(inputValues)
+            })
+            .then(response => {
+                // Redirect to home page
+                window.location = 'http://127.0.0.1:5500/'
+            })
+        })
+
+        // On delete event
+        $("#delete").on("click", async function() {
+            // Delete the account
+            await fetch(LOCALHOST + SERVER_PORT + '/deleteAccount', {
+                method: "DELETE"
+            }) 
+            .then(response => {
+                // Redirect to home page
+                window.location = LOCALHOST + CLIENT_PORT
+            })
+        })
+
+        // Function for logging out of session
+        $("#logout").on("click", async function() {
+            // Sending request
+            await fetch(LOCALHOST + SERVER_PORT + "/logout", {
+                method: "POST"
+            })
+            .then(response => {
+                // Redirecting to home
+                window.location = LOCALHOST + CLIENT_PORT
+            })
+        })
+    })
+</script>

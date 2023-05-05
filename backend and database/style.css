@@ -1,0 +1,286 @@
+@import url('https://fonts.googleapis.com/css2?family=Oxygen&display=swap');
+
+body, html {
+  height: 100%;
+  font-family: 'Oxygen', sans-serif;
+  scroll-behavior: smooth;
+}
+
+.bgimg {
+  background-position: center;
+  background-size: cover;
+  background-color: blue;
+  min-height: 60%;
+}
+
+.menu {
+  display: none;
+}
+
+.icon {
+  width: 18rem;
+  height: 18rem;
+  border-radius: 10%;
+}
+
+.separate-children > * {
+  margin: 2%;
+}
+
+
+.profile-info {
+  width: 40%;
+  margin: 0;
+}
+
+.profile-info > * {
+  width: 100%;
+  padding-inline: 5px;
+}
+
+.profile-bio {
+  width: 50%;
+  margin: 0;
+}
+
+.profile-bio > * {
+  width: 100%;
+  aspect-ratio: 4 / 1;
+  padding: 10px;
+}
+
+.profile-buttons > * {
+  padding: 10px;
+  border-radius: 4px;
+  background-color: antiquewhite;
+  border: solid 1px black;
+  margin-inline: 5%;
+  transition: color, background-color 150ms;
+  margin-block: 0;
+}
+
+.profile-buttons button:nth-of-type(1):hover{
+  background-color: green;
+  color: white;
+  cursor: pointer;
+}
+
+.profile-buttons button:nth-of-type(2):hover{
+  background-color: red;
+  color: white;
+  cursor: pointer;
+}
+
+.assignments-list > * {
+  background-color: rgb(255, 255, 255);
+  border: solid 1px black;
+  border-radius: 10px;
+  width: 60%;
+  margin: 2%;
+  aspect-ratio: 8/1;
+}
+
+.assignment-button {
+  min-width: 24rem;
+  min-height: 4rem;
+  background-color: rgb(233, 233, 233);
+  border: solid 1px black;
+  border-radius: 10px;
+
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.assignment-button:hover {
+  background-color: white;
+}
+
+.assignment-update {
+  width: 80%;
+  display: flex;
+  justify-content: center;
+}
+
+.assignment-update > div {
+  background-color: rgb(255, 255, 255);
+  border: solid 1px black;
+  border-radius: 10px;
+  width: 50%;
+  margin: 2%;
+  aspect-ratio: 8/1;
+}
+
+.assignment-update > a {
+  background-color: rgb(255, 255, 255);
+  border: solid 1px black;
+  border-radius: 10px;
+  width: 15%;
+  margin: 2%;
+  aspect-ratio: 3/1;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  transition: color, background-color 150ms;
+}
+
+.assignment-update > a:hover {
+  background-color: blue;
+  color: white;
+}
+
+.assignment-create > * {
+  width: 100%;
+  padding: 5px;
+}
+
+.assignment-create > textarea {
+  aspect-ratio: 5.5 / 1;
+}
+
+.assignment-create-buttons > * {
+  width: 10rem;
+
+  border: solid 1px black;
+  border-radius: 10px;
+
+  display: flex;
+  justify-content: center;
+  align-content: center;
+  
+  background-color: rgb(233, 233, 233);
+
+  transition: color, background-color 150ms;
+}
+
+.assignment-create-buttons a:nth-child(1):hover {
+  color: white;
+  background-color: red;
+}
+
+.assignment-create-buttons input:nth-child(2):hover {
+  color: white;
+  background-color: blue;
+  cursor: pointer;
+}
+
+.listing:hover {
+  cursor: pointer;
+}
+
+.classlist {
+  width: 60%;
+}
+
+.classlist > * {
+  min-width:  40%;
+  margin: 2%;
+  aspect-ratio: 5 / 1;
+  background-color: rgb(233, 233, 233);
+  padding: 10px;
+
+  border: solid 1px black;
+  border-radius: 10px;
+
+  display: flex;
+  align-items: center;
+  font-size: 1.8rem;
+}
+
+.classlist > *:hover {
+  background-color: white;
+}
+
+.drop-button {
+  min-width: 20%;
+  border: solid 1px black;
+  border-radius: 10px;
+  background-color: rgb(233, 233, 233);
+
+  transition: color, background-color 150ms;
+}
+
+.drop-button:hover {
+  background-color: red;
+  color: white;
+}
+
+.card {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 3rem;
+  border-radius: 2%;
+  transition: color, background-color 200ms;
+}
+
+.selected {
+  background-color: rgb(161, 249, 255);
+  border: solid 2px blue;
+}
+
+.reg-details label, input {
+  margin-bottom: 10%;
+  padding: 5px;
+}
+
+a {
+  text-decoration: none;
+}
+
+a::after {
+  text-decoration: none;
+}
+
+.d-flex {
+  display: flex;
+}
+
+.d-flex-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.wrap {
+  flex-wrap: wrap;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.justify-evenly {
+  justify-content: space-evenly;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.align-center {
+  align-items: center;
+}
+
+::-webkit-scrollbar {
+  width: 7px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: black;
+}
+ 
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: lightgray; 
+  border-radius: 10px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: white; 
+}
