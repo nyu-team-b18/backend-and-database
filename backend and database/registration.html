@@ -42,6 +42,8 @@
                     <input type="hidden" name="accountType" value="admin">
                     <label for="email">EMAIL</label><br>
                     <input style="width:100%" type="text" name="email" required><br>
+                    <label for="name">NAME</label><br>
+                    <input style="width:100%" type="name" name="name" required><br>
                     <label for="username">USERNAME</label><br>
                     <input style="width:100%" type="text" name="username" required><br>
                     <label for="password">PASSWORD</label><br>
@@ -60,6 +62,8 @@
                     <input type="hidden" name="accountType" value="student">
                     <label for="email">EMAIL</label><br>
                     <input style="width:100%" type="text" name="email" required><br>
+                    <label for="name">NAME</label><br>
+                    <input style="width:100%" type="name" name="name" required><br>
                     <label for="username">USERNAME</label><br>
                     <input style="width:100%" type="text" name="username" required><br>
                     <label for="password">PASSWORD</label><br>
@@ -78,6 +82,8 @@
                     <input type="hidden" name="accountType" value="guest">
                     <label for="email">EMAIL</label><br>
                     <input style="width:100%" type="text" name="email" required><br>
+                    <label for="name">NAME</label><br>
+                    <input style="width:100%" type="name" name="name" required><br>
                     <label for="username">USERNAME</label><br>
                     <input style="width:100%" type="text" name="username" required><br>
                     <label for="password">PASSWORD</label><br>
@@ -124,6 +130,7 @@
             // Get all the forms elements and their values in one step
             let type = $(this).find('input[name="accountType"]').val()
             let $email = $(this).find('input[name="email"]')
+            let $name = $(this).find('input[name="name"]')
             let $username = $(this).find('input[name="username"]')
             let $password = $(this).find('input[name="password"]')
             let $confirm = $(this).find('input[name="password-confirm"]')
@@ -132,6 +139,7 @@
             var inputValues = { 
                 "account-type":type,
                 "email":$email.val(),
+                "name":$name.val(),
                 "username":$username.val(),
                 "password":$password.val(),
                 "password-confirm":$confirm.val()
@@ -139,6 +147,7 @@
 
             // Reset input fields
             $email.val("")
+            $name.val("")
             $username.val("")
             $password.val("")
             $confirm.val("")

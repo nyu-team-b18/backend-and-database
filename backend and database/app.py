@@ -24,6 +24,7 @@ def verifyRegistration():
     # Get registration details
     data = request.get_json()
     account_type = data['account-type']
+    name = data['name']
     email = data['email']
     username = data['username']
     password = data['password']
@@ -76,6 +77,7 @@ def verifyRegistration():
         # Begin new session
         session['username'] = username
         session['email'] = email
+        session['name'] = name
         session['account-type'] = account_type
 
         return jsonify({
@@ -121,6 +123,7 @@ def verifyRegistration():
         # Begin a new session
         session['username'] = username
         session['email'] = email
+        session['name'] = name
         session['account-type'] = account_type
 
         return jsonify({
@@ -149,6 +152,7 @@ def verifyRegistration():
         # Begin new session
         session['username'] = username
         session['email'] = email
+        session['name'] = name
         session['account-type'] = account_type
 
         conn.commit()
