@@ -376,9 +376,17 @@ def getIncompleteAssignments():
 
     username = session['username']
 
-    # TODO: Add a query to select assignments that the student has not completed
-    incomplete = [f"Assignment {i+1}" for i in range(2)]
-    return jsonify({
+    cursor = conn.cursor()
+    cursor.execute("""SELECT ASSIGNMENT.ASSIGN_TITLE from student, assignment 
+                        WHERE student.progress <= assignment.game_level
+                        AND student.student_group = assignment.student_group
+                        AND student.user_name =: temp""", [username])
+    incomplete_raw = cursor.fetchall()
+    cursor.close()
+    incomplete = []
+    for assignment in incomplete_raw:
+        incomplete.append(assignment[0])
+        return jsonify({
         'assignments': incomplete
     })
 
@@ -516,6 +524,7 @@ def deleteAccount():
 def getStudentInformation():
     # GET args
     student_username = request.args.get('username')
+    student_group = session['student-group']
     cursor = conn.cursor()
     # Get student information
     cursor.execute('SELECT email, name, bio FROM STUDENT where user_name =: temp', temp = student_username)
@@ -526,15 +535,23 @@ def getStudentInformation():
     bio = data[2]
 
     # Get all completed assignments
-    # TODO: Add a query that gets all assignment titles completed by this student
-    cursor.execute('SELECT assignment FROM student where user_name =: temp', temp = student_username)
-    assignments = cursor.fetchall()
+    cursor.execute("""SELECT ASSIGNMENT.ASSIGN_TITLE FROM STUDENT, ASSIGNMENT
+                        WHERE ASSIGNMENT.STUDENT_GROUP =: student_group
+                        AND STUDENT.PROGRESS > ASSIGNMENT.GAME_LEVEL
+                        AND student.user_name =: username""", [student_group, student_username])
+    complete_raw = cursor.fetchall()
+    complete = []
+    cursor.close()
+    
+    for assignment in complete_raw:
+        complete.append(assignment[0])
+
     return jsonify({
         'username': student_username,
         'email': email,
         'name': name,
         'bio': bio,
-        'assignments': assignments
+        'assignments': complete
     })
 
 
