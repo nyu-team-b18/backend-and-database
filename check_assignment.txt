@@ -1,0 +1,32 @@
+def check_assignment():
+    data = request.get_json()
+    account_type = session['account-type']
+    username = session['username']
+    cursor = conn.cursor()
+
+    if account_type == 'student':
+        #check incomplete assignment
+        cursor.execute('SELECT ASSIGNMENT.ASSIGN_TITLE from student, assignment WHERE '
+                       'student.prpgress <= assignment.game_level '
+                       'AND student.student_group = assignment.student_group '
+                       'AND student.user_name =: temp', temp = username)
+        incomplete_assignment = cursor.fetchall()
+        cursor.close()
+        return incomplete_assignment
+
+    elif account_type =="admin":
+        student_username = data['Student username']
+        student_group = session['student-group']
+        cursor.execute('SELECT * FROM student where student_group =: student_group '
+                       'AND user_name =: student_username', [student_group, student_username])
+        data = cursor.fetchone()
+        if data:
+            cursor.execute('SELECT ASSIGNMENT.ASSIGN_TITLE FROM STUDENT, ASSIGNMENT '
+                           'WHERE assignment.student_group =: student_group AND '
+                           'student.progress > assignment.game_level '
+                           'AND student.user_name =: username', [student_group, student_username])
+            completed_assignment = cursor.fetchall()
+            cursor.close()
+            return completed_assignment
+        else:
+            error = "Student is not in this group"
