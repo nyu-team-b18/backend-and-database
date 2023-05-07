@@ -1,11 +1,15 @@
-from flask import Flask, request, session, redirect, jsonify
+from flask import Flask, request, redirect, jsonify
 from flask_cors import CORS
 import oracledb
 
 app = Flask(__name__)
 CORS(app)
+session = {}
 
-cs = '''(description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1521)(host=adb.us-ashburn-1.oraclecloud.com))(connect_data=(service_name=g4ce17c11a5179b_helloadventuredb_low.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))'''
+cs = '''(description= (retry_count=3)(retry_delay=3)(address=(protocol=tcps)
+        (port=1521)(host=adb.us-ashburn-1.oraclecloud.com))
+        (connect_data=(service_name=g4ce17c11a5179b_helloadventuredb_low.adb.oraclecloud.com))
+        (security=(ssl_server_dn_match=yes)))'''
 
 conn = oracledb.connect(
     user="admin",
@@ -15,167 +19,220 @@ conn = oracledb.connect(
 
 @app.route('/verifyRegistration', methods=["GET", "POST"])
 def verifyRegistration():
+    global session
+
+    # Get registration details
     data = request.get_json()
     account_type = data['account-type']
+    email = data['email']
+    username = data['username']
+    password = data['password']
+    confirmation = data['password-confirm']
 
+    # Check if passwords match
+    if password != confirmation:
+        return jsonify({
+            "result": "FAIL",
+            "message": "Passwords must match"
+        })
+
+    # Register admin account
     if account_type == "admin":
-        email = request.form['email']
-        user_name = request.form['username']
-        password = request.form['password']
-        student_group = request.form['student-group']
+        # Get student group
+        student_group = data['student-group']   
 
         # Check if the account already exists
         cursor = conn.cursor()
         cursor.execute('SELECT * FROM admin WHERE email =: temp', temp=email)
-        data = cursor.fetchone()
-        error = None
+        data = cursor.fetchall()
 
-        if (data):
-            # If the previoud query returns data, then user exists
-            error = "This user has already exists"
-            return jsonify({
-                "result": "FAIL",
-                "message": "Admin already exists"
-            })
-
-        else:  # Succeed
-
-            cursor.execute('INSERT INTO admin (EMAIL, USER_NAME, PASSWORD, STUDENT_GROUP) '
-                           'VALUES(:email, :username, :password, :student_group)',
-                           [email, user_name, password, student_group])
-            conn.commit()
+        # If the account exists
+        if data:
             cursor.close()
             return jsonify({
-                "result": "SUCCEED",
+                "result": "FAIL",
+                "message": "User already exists"
             })
 
+        # Check if the student group is in use
+        cursor.execute('SELECT * FROM admin WHERE student_group =: temp', temp=student_group)
+        data = cursor.fetchall()
+
+        # If the student group is in use
+        if data:    
+            cursor.close()
+            return jsonify({
+                "result": "FAIL", 
+                "message": "Student group in use"
+            })
+
+        # Create the account
+        cursor.execute('INSERT INTO admin (EMAIL, USER_NAME, PASSWORD, STUDENT_GROUP) '
+                        'VALUES(:email, :username, :password, :student_group)',
+                        [email, username, password, student_group])
+        conn.commit()
+        cursor.close()
+
+        # Begin new session
+        session['username'] = username
+        session['email'] = email
+        session['account-type'] = account_type
+
+        return jsonify({
+            "result": "SUCCEED"
+        })
+
     elif account_type == "student":
-        email = request.form['email']
-        user_name = request.form['username']
-        password = request.form['password']
-        student_group = request.form['student-group']
+        # Get student group
+        student_group = data['student-group']   
 
         # Check if the account already exists
         cursor = conn.cursor()
         cursor.execute('SELECT * FROM student WHERE email =: temp', temp=email)
         data = cursor.fetchone()
-        error = None
 
-        if (data):
-            # If the previous query returns data, then user exists
-            error = "This user has already exists"
-            return jsonify({
-                "result": "FAIL",
-                "message": "Student already exists"
-            })
-
-        else:  # Succeed
-
-            cursor.execute('INSERT INTO student (EMAIL, USER_NAME, PASSWORD, STUDENT_GROUP, PROGRESS, ASSIGNMENT) '
-                           'VALUES(:email, :username, :password, :student_group, null, null)',
-                           [email, user_name, password, student_group])
-            conn.commit()
+        # If the account exists
+        if data:
             cursor.close()
             return jsonify({
-                "result": "SUCCEED",
+                "result": "FAIL",
+                "message": "User already exists"
             })
 
-    elif account_type == "guest":
-        email = request.form['email']
-        user_name = request.form['username']
-        password = request.form['password']
+        # Check if the student group exists
+        cursor.execute('SELECT * FROM admin WHERE student_group =: temp', temp=student_group)
+        data = cursor.fetchall()
 
+        # If the student group exists
+        if not data:
+            cursor.close()
+            return jsonify({
+                "result": "FAIL",
+                "message": "Student group not found"
+            })
+
+        # Create the account
+        cursor.execute('INSERT INTO student (EMAIL, USER_NAME, PASSWORD, STUDENT_GROUP, PROGRESS, ASSIGNMENT) '
+                        'VALUES(:email, :username, :password, :student_group, null, null)',
+                        [email, username, password, student_group])
+        conn.commit()
+        cursor.close()
+
+        # Begin a new session
+        session['username'] = username
+        session['email'] = email
+        session['account-type'] = account_type
+
+        return jsonify({
+            "result": "SUCCEED",
+        })
+
+    elif account_type == "guest":
         # Check if the account already exists
         cursor = conn.cursor()
         cursor.execute('SELECT * FROM guest WHERE email =: temp', temp=email)
-        data = cursor.fetchone()
-        error = None
+        data = cursor.fetchall()
 
-        if (data):
-            # If the previous query returns data, then user exists
-            error = "This user has already exists"
-            return jsonify({
-                "result": "FAIL",
-                "message": "Guest user already exists"
-            })
-
-        else:  # Succeed
-
-            cursor.execute('INSERT INTO guest (EMAIL, USER_NAME, PASSWORD, PROGRESS) '
-                           'VALUES(:email, :username, :password, null)',
-                           [email, user_name, password])
-            conn.commit()
+        # If the account exists
+        if data:
             cursor.close()
             return jsonify({
-                "result": "SUCCEED",
-            })
+                "result": "FAIL",
+                "message": "User already exists"
+            })  
+
+        # Create the account
+        cursor.execute('INSERT INTO guest (EMAIL, USER_NAME, PASSWORD, PROGRESS) '
+                        'VALUES(:email, :username, :password, null)',
+                        [email, username, password])
+        
+        # Begin new session
+        session['username'] = username
+        session['email'] = email
+        session['account-type'] = account_type
+
+        conn.commit()
+        cursor.close()
+        return jsonify({
+            "result": "SUCCEED",
+        })
 
 
 @app.route('/verifyLogin', methods=["GET", "POST"])
 def verifyLogin():
+    global session
+
     data = request.get_json()
-    account_type = data['account-type']
-    email = request.form['email']
-    password = request.form['password']
+    # account_type = data['account-type']
+    username = data['username']
+    password = data['password']
 
-    if account_type == "admin":
-        cursor = conn.cursor()
-        cursor.execute('SELECT * FROM admin WHERE email =: email and password =: password', [email, password])
-        data = cursor.fetchone()
-        error = None
+    username_index = 1
+
+    # CHECK IF IT IS AN ADMIN ACCOUNT
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM admin WHERE user_name =: username and password =: password', [username, password])
+    data = cursor.fetchone()
+
+    print(data)
+
+    if data:
         cursor.close()
+        student_group_index = 3
+        session['account-type'] = 'admin'
+        session['username'] = data[username_index]
+        session['student-group'] = data[student_group_index]
+        
+        return jsonify({}), 200
+    
+    # CHECK IF IT IS A STUDENT ACCOUNT
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM student WHERE user_name =: username and password =: password', [username, password])
+    data = cursor.fetchone()
 
-        if (data):
-
-            return jsonify({}), 200
-        else:
-            error = "Invalid email or password"
-            return jsonify({}), 409
-
-    elif account_type == "student":
-        cursor = conn.cursor()
-        cursor.execute('SELECT * FROM student WHERE email =: email and password =: password', [email, password])
-        data = cursor.fetchone()
-        error = None
+    if data:
         cursor.close()
+        student_group_index = 5
+        session['account-type'] = 'student'
+        session['username'] = data[username_index]
+        session['student-group'] = data[student_group_index]
 
-        if (data):
+        return jsonify({}), 200
 
-            return jsonify({}), 200
-        else:
-            error = "Invalid email or password"
-            return jsonify({}), 409
+    # CHECK IF IT IS A GUEST ACCOUNT
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM guest WHERE user_name =: username and password =: password', [username, password])
+    data = cursor.fetchone()
 
-    elif account_type == "guest":
-        cursor = conn.cursor()
-        cursor.execute('SELECT * FROM guest WHERE email =: email and password =: password', [email, password])
-        data = cursor.fetchone()
-        error = None
+    if data:
         cursor.close()
+        session['account-type'] = 'guest'
+        session['username'] = data[username_index]
+        return jsonify({}), 200
 
-        if (data):
-
-            return jsonify({}), 200
-        else:
-            error = "Invalid email or password"
-            return jsonify({}), 409
+    # Login failed
+    return jsonify({}), 409
 
 
 @app.route('/logout', methods=["GET", "POST"])
 def logout():
-    # TODO: Destroy all session variables
-    session.pop('username')
+    global session
+    session.clear()
+    
     # redirect
     return jsonify({})
 
 
 @app.route('/getAssignments', methods=["GET"])
 def getAssignments():
+    global session
+    # Get the student group
+    student_group = session['student-group']
+
     # Get class assignments
-    assignment_id = request.form["assignment id"]
     cursor = conn.cursor()
-    cursor.execute('SELECT * from ASSIGNMENT WHERE ID =: temp', temp = assignment_id)
-    data = cursor.fetchone()
+    cursor.execute('SELECT assign_title from ASSIGNMENT WHERE student_group =: temp', temp = student_group)
+    data = cursor.fetchall()
 
     return jsonify({
         'assignments': data,
@@ -184,74 +241,84 @@ def getAssignments():
 
 @app.route('/getStudents', methods=["GET"])
 def getStudents():
+    global session
+
     # Get class students
-    username = session['username']
+    student_group = session['student-group']
     cursor = conn.cursor()
 
-    cursor.execute('SELECT STUDENT.user_name, STUDENT.email from ADMIN, STUDENT where ADMIN.user_name =: username and '
-                   'ADMIN.student_group = STUDENT.student_group', username = username)
+    cursor.execute('SELECT user_name FROM STUDENT where student_group =: student_group', student_group = student_group)
     data = cursor.fetchall() # a list of students
     cursor.close()
+
+    # Get all student usernames
+    student_list = []
+    for student in data:
+        student_list.append({
+            'username': student[0],
+            'name': student[0]
+        })
+    
     return jsonify({
-        'students': data
+        'students': student_list
     })
 
 
 @app.route('/getAccountType', methods=["GET"])
 def getAccountType():
+    global session
+
     # Get account type
-    account_type = session['account-type']
+    try:
+        account_type = session['account-type']
+    except:
+        account_type = 'none'
     return jsonify({'account-type': account_type})
+
 
 @app.route('/getAssignmentDetails', methods=["GET"])
 def getAssignmentDetails():
+    global session
+    student_group = session['student-group']
+
     # GET args
-    assignment_title = request.args.get('assignment')
+    assign_title = request.args.get('assignment')
 
     # Get assignment description and date
     cursor = conn.cursor()
     # check if the assignment exists
-    cursor.execute('SELECT * from assignment WHERE id =: temp ', temp = assignment_title)
+    cursor.execute('SELECT * from assignment WHERE assign_title =: assign_title AND student_group := student_group ', [assign_title, student_group])
     data = cursor.fetchall()
-    error = None
-    if data:
-        return jsonify({
-            'title': assignment_title,
-            'description': data[0][1],
-            'date': data[0][2],
-            'world': data[0][3],
-            'level': data[0][4]
-        })
-    else:
-        error = "No such assignment"
-        return error
+    
+    return jsonify({
+        'title': assign_title,
+        'description': data[0][0],
+        'date': data[0][1].strftime('%Y-%m-%d'),
+        'world': data[0][2],
+        'level': data[0][3]
+    })
+
 
 @app.route('/updateAssignment', methods=["GET", "POST"])
 def updateAssignment():
     if (request.method == 'POST'):
+        global session
+        student_group = session['student-group']
+
         data = request.get_json()
-        title, description, assignment_date = data['title'], data['description'], data['date']
-        world, level = data['world'], data['level']
+        assign_title = data['title']
+        assign_description = data['description']
+        due_date = data['date']
+        world = data['world']
+        game_level = data['level']
 
         # Update the assignment
-        # TODO: Add query to update database at assignment title
         cursor = conn.cursor()
-
-        #check if this assignment exists
-        cursor.execute('SELECT * FROM ASSIGNMENT WHERE id =: temp', temp = title)
-        data = cursor.fetchone()
-        error = None
-
-        if data: #succeed
-            cursor.execute(
-                'UPDATE ASSIGNMENT SET description =: new_description, assignment_date =: new_date, world =: new_world, game_level =: new_level '
-                'WHERE id =: new_title', [description, assignment_date, world, level, title])
-            conn.commit()
-            cursor.close()
-        else:
-            error = "this assignment doesn't exist"
-            cursor.close()
-            return error
+        cursor.execute(
+            """UPDATE ASSIGNMENT SET assign_description =: assign_description, due_date = TO_DATE(:due_date, 'YYYY-MM-DD'), world =: world, game_level =: game_level
+            WHERE assign_title =: assign_title AND student_group =: student_group""", [assign_description, due_date, world, game_level, assign_title, student_group])
+        conn.commit()
+        cursor.close()
 
 
     return jsonify({})
@@ -259,28 +326,33 @@ def updateAssignment():
 
 @app.route('/createAssignment', methods=["GET", "POST"])
 def createAssignment():
-    data = request.get_json()
-    title, description, date = data['title'], data['description'], data['date']
-    world, level = data['world'], data['level']
+    global session
+    student_group = session['student-group']
 
+    data = request.get_json()
+    assign_title = data['title']
+    assign_description = data['description']
+    due_date = data['date']
+    world = data['world']
+    game_level = data['level']
+    
     cursor = conn.cursor()
     # check if the assignment already exists
-    cursor.execute('SELECT * from assignment where id =: temp', temp = title)
+    cursor.execute('SELECT * from assignment where assign_title =: title AND student_group =: student_group', 
+                   [assign_title, student_group])
     data = cursor.fetchone()
-    error = None
 
-    if data:  # Failure
-        error = "assignment already exists"
+    if data:  # Failure, assignment already exists
+        cursor.close()
         return jsonify({}), 409
 
     else:  # Success
-        cursor.execute('INSERT into assignment(id, description, assignment_date, world, game_level) '
-                       'VALUES(:id, :description, :assignment_date, :world, :game_level)',
-                       [title, description, date, world, level])
+        cursor.execute(f"""INSERT into assignment(assign_description, due_date, world, game_level, student_group, assign_title) 
+                            VALUES(:assign_description, TO_DATE(:due_date, 'YYYY-MM-DD'), :world, :game_level, :student_group, :assign_title)""",
+                       [assign_description, due_date, world, game_level, student_group, assign_title])
         conn.commit()
         cursor.close()
         return jsonify({}), 200
-
 
 
 @app.route('/getProfile', methods=["GET"])
@@ -290,6 +362,8 @@ def getProfile():
     account_type = session['account-type']
     username = session['username']
     cursor = conn.cursor()
+
+    details = {}
 
     if account_type == 'student':
         # Get the account details
@@ -305,10 +379,6 @@ def getProfile():
                 'email': data[1],
                 'progress': data[2]
             }
-        else:
-            error = "There was an error viewing the profile."
-            return error
-
     elif account_type == 'admin':
         # Get the account details
 
@@ -322,10 +392,6 @@ def getProfile():
                 'username': data[0],
                 'email': data[1]
             }
-        else:
-            error = "There was an error viewing the profile."
-            return error
-
     else:
         # Get the account details
         cursor.execute('SELECT user_name, email, progress from guest where user_name =: temp', temp=username)
@@ -339,22 +405,16 @@ def getProfile():
                 'email': data[1],
                 'progress': data[2]
             }
-        else:
-            error = "There was an error viewing the profile."
-            return error
-
 
     return jsonify(details)
 
 
 @app.route('/updateProfile', methods=['GET', 'POST'])
 def updateProfile():
-    # TODO: Get the account type from the session
-    # TODO: Get the username from the session
+    global session
+
     account_type = session['account-type']
     username = session['username']
-
-
 
     data = request.get_json()
     new_email, new_password = data['email'], data['password']
@@ -413,30 +473,27 @@ def updateProfile():
 
 @app.route("/deleteAccount", methods=["GET", "DELETE"])
 def deleteAccount():
-    # TODO: Get the account type from the session
-    # TODO: Get the username from the session
+    global session
+
+    # Get account details
     account_type = session['account-type']
     username = session['username']
 
     cursor = conn.cursor()
     if account_type == 'admin':
-        # TODO: Change all students under this admin to guest accounts
-        #check if the student exists and is in thr group
-        cursor.execute('SELECT student.user_name from student, admin WHERE student.student_group = admin.student_group'
-                       'AND admin.user_name =: temp', temp = username)
-        data = cursor.fetchall()
-        if data:
-            for student in data:
-                cursor.execute('UPDATE student SET student_group = null WHERE user_name =: temp', temp = student[0])
-                conn.commit()
-                # TODO: Delete this account from admin table
-            cursor.execute('DELETE FROM admin WHERE user_name =: temp', temp = username)
-            conn.commit()
-            cursor.close()
-        else:
-            error = "No such student in your group"
-            return error
-
+        # # TODO: Change all students under this admin to guest accounts
+        # #check if the student exists and is in thr group
+        # cursor.execute('SELECT student.user_name from student, admin WHERE student.student_group = admin.student_group'
+        #                'AND admin.user_name =: temp', temp = username)
+        # data = cursor.fetchall()
+        # if data:
+        #     for student in data:
+        #         cursor.execute('UPDATE student SET student_group = null WHERE user_name =: temp', temp = student[0])
+        #         conn.commit()
+        #         # TODO: Delete this account from admin table
+        cursor.execute('DELETE FROM admin WHERE user_name =: temp', temp = username)
+        conn.commit()
+        cursor.close()
     elif account_type == 'guest':
         # TODO: Delete this account from guest table
         cursor.execute('DELETE FROM guest WHERE user_name =: temp', temp = username)
@@ -457,27 +514,8 @@ def getStudentInformation():
     # Get student information
     cursor.execute('SELECT * FROM STUDENT where user_name =: temp', temp = student_username)
     data = cursor.fetchone()
-    if data:
-    # TODO: Add a query to get student details
-        admin_username = session['username']
-        cursor.execute('SELECT student.email, student.progress FROM ADMIN, STUDENT WHERE ADMIN.student_group = STUDENT.student_group '
-                       'AND STUDENT.user_name =: username and ADMIN.user_name =: admin_username', [student_username, admin_username])
-        data = cursor.fetchone()
-        error = None
 
-
-        if data:
-            email = data[0]
-            progress = data[1]
-        else:
-            error = "Student are not in the group"
-            cursor.close()
-            return error
-    else:
-        error = "Student doesn't exist"
-        cursor.close()
-        return error
-
+    email = data[0]
 
     # Get all completed assignments
     # TODO: Add a query that gets all assignment titles completed by this student
@@ -487,7 +525,6 @@ def getStudentInformation():
     return jsonify({
         'username': student_username,
         'email': email,
-        'progress': progress,
         'assignments': assignments
     })
 
@@ -510,3 +547,4 @@ app.secret_key = 'some other random key'
 
 if __name__ == '__main__':
     app.run('127.0.0.1', 5000, debug=True)
+    session['test'] = 10

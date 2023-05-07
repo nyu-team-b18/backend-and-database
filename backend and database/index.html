@@ -122,14 +122,16 @@
       $guest.hide()
       $none.hide()
       
+      console.log(data['account-type'])
+
       // Reveal the content corresponding to the user account type
-      if(data['account-type'] === 'STUDENT') {
+      if(data['account-type'] === 'student') {
         $student.show()
       }
-      else if(data['account-type'] === 'ADMIN') {
+      else if(data['account-type'] === 'admin') {
         $admin.show()
       }
-      else if(data['account-type'] === 'GUEST') {
+      else if(data['account-type'] === 'guest') {
         $guest.show()
       }
       else {

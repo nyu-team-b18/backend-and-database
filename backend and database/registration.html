@@ -46,8 +46,10 @@
                     <input style="width:100%" type="text" name="username" required><br>
                     <label for="password">PASSWORD</label><br>
                     <input style="min-width:100%" type="password" name="password" required><br>
+                    <label for="password-confirm">CONFIRM PASSWORD</label><br>
+                    <input style="min-width:100%" type="password" name="password-confirm" required><br>
                     <label for="student-group">STUDENT-GROUP</label><br>
-                    <input style="min-width:100%" type="text" name="student-group" required><br>
+                    <input style="min-width:100%" type="number" name="student-group" required><br>
                 </div>
                 <button style="width: 30%; aspect-ratio: 2/1;" class="w3-xlarge" type="submit">SUBMIT</button>
             </form>
@@ -62,8 +64,10 @@
                     <input style="width:100%" type="text" name="username" required><br>
                     <label for="password">PASSWORD</label><br>
                     <input style="min-width:100%" type="password" name="password" required><br>
+                    <label for="password-confirm">CONFIRM PASSWORD</label><br>
+                    <input style="min-width:100%" type="password" name="password-confirm" required><br>
                     <label for="student-group">STUDENT GROUP</label><br>
-                    <input style="min-width:100%" type="text" name="student-group" required><br>
+                    <input style="min-width:100%" type="number" name="student-group" required><br>
                 </div>
                 <button style="width: 30%; aspect-ratio: 2/1;" class="w3-xlarge" type="submit">SUBMIT</button>
             </form>
@@ -71,14 +75,15 @@
         <div class="account-area w3-quarter" id="guest-option" hidden>
             <form class="reg-details d-flex-col align-center" onsubmit="return false">
                 <div style="width: 100%">
-                    <input type="hidden" name="accountType" value="admin">
+                    <input type="hidden" name="accountType" value="guest">
                     <label for="email">EMAIL</label><br>
                     <input style="width:100%" type="text" name="email" required><br>
                     <label for="username">USERNAME</label><br>
                     <input style="width:100%" type="text" name="username" required><br>
                     <label for="password">PASSWORD</label><br>
                     <input style="min-width:100%" type="password" name="password" required><br>
-
+                    <label for="password-confirm">CONFIRM PASSWORD</label><br>
+                    <input style="min-width:100%" type="password" name="password-confirm" required><br>
                 </div>
                 <button style="width: 30%; aspect-ratio: 2/1;" class="w3-xlarge" type="submit">SUBMIT</button>
             </form>
@@ -139,10 +144,10 @@
             $confirm.val("")
 
             // Check if we need to add the class code to the account type
-            if(type === "student") {
-                let $admin = $(this).find('input[name="admin-username"]')
-                inputValues["admin-username"] = $admin.val()
-                $admin.val("")
+            if(type != "guest") {
+                let $studentGroup = $(this).find('input[name="student-group"]')
+                inputValues["student-group"] = $studentGroup.val()
+                $studentGroup.val("")
             }
 
             // POST request to make new account
