@@ -1,0 +1,52 @@
+create table guest (
+    email varchar2(4000) not null,
+    user_name varchar2(4000) not null constraint guest_pk primary key,
+    password varchar2(4000) not null,
+    progress number
+);
+/
+
+
+alter table guest add constraint guest_email_uq unique (email);
+
+
+create table admin (
+    email varchar2(4000) not null,
+    user_name varchar2(4000) not null constraint admin_pk primary key,
+    password varchar2(4000) not null,
+    student_group number
+);
+/
+
+
+alter table admin add constraint admin_email_uq unique (email);
+
+
+
+create table student (
+    
+    email varchar2(4000) not null,
+    user_name varchar2(4000) not null constraint student_pk primary key,
+    password varchar2(4000) not null,
+    progress number,
+    student_group number,
+    assignment number
+);
+/
+
+
+alter table Student add constraint student_email_uq unique (email);
+
+
+
+create table assignment (
+    
+    id number not null constraint assignment_pk primary key,
+    description varchar2(4000),
+    assignment_date date,
+    world number,
+    game_level number
+);
+/
+
+
