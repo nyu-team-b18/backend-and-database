@@ -162,9 +162,22 @@ body, html {
   background-color: red;
 }
 
-.assignment-create-buttons input:nth-child(2):hover {
+.assignment-create-buttons input:nth-child(1):hover {
   color: white;
   background-color: blue;
+  cursor: pointer;
+}
+
+.assignment-reminder {
+  font-size: 2rem;
+  margin-top: 0;
+  border-radius: 10px;
+  min-width: 30%;
+  background-color: blue;
+}
+
+.assignment-reminder:hover {
+  background-color: rgb(80, 80, 255);
   cursor: pointer;
 }
 

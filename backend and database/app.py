@@ -287,7 +287,7 @@ def getAssignmentDetails():
     # Get assignment description and date
     cursor = conn.cursor()
     # check if the assignment exists
-    cursor.execute('SELECT * from assignment WHERE assign_title =: assign_title AND student_group := student_group ', [assign_title, student_group])
+    cursor.execute('SELECT * from assignment WHERE assign_title =: assign_title AND student_group =: student_group ', [assign_title, student_group])
     data = cursor.fetchall()
     
     return jsonify({
@@ -319,7 +319,6 @@ def updateAssignment():
             WHERE assign_title =: assign_title AND student_group =: student_group""", [assign_description, due_date, world, game_level, assign_title, student_group])
         conn.commit()
         cursor.close()
-
 
     return jsonify({})
 
@@ -355,10 +354,22 @@ def createAssignment():
         return jsonify({}), 200
 
 
+@app.route('/getIncompleteAssignments', methods=["GET"])
+def getIncompleteAssignments():
+    # Assume account type is student
+
+    username = session['username']
+
+    # TODO: Add a query to select assignments that the student has not completed
+    incomplete = [f"Assignment {i+1}" for i in range(2)]
+    return jsonify({
+        'assignments': incomplete
+    })
+
+
+
 @app.route('/getProfile', methods=["GET"])
 def getProfile():
-    # TODO: Get the account type from the session
-    # TODO: Get the username from the session
     account_type = session['account-type']
     username = session['username']
     cursor = conn.cursor()
@@ -490,18 +501,16 @@ def deleteAccount():
         #     for student in data:
         #         cursor.execute('UPDATE student SET student_group = null WHERE user_name =: temp', temp = student[0])
         #         conn.commit()
-        #         # TODO: Delete this account from admin table
         cursor.execute('DELETE FROM admin WHERE user_name =: temp', temp = username)
         conn.commit()
         cursor.close()
     elif account_type == 'guest':
-        # TODO: Delete this account from guest table
         cursor.execute('DELETE FROM guest WHERE user_name =: temp', temp = username)
         conn.commit()
         cursor.close()
 
 
-    # TODO: Destroy all session variables
+    # Destroy all session variables
     session.clear()
     return jsonify({})
 
@@ -519,7 +528,6 @@ def getStudentInformation():
 
     # Get all completed assignments
     # TODO: Add a query that gets all assignment titles completed by this student
-    #Assume student already exists
     cursor.execute('SELECT assignment FROM student where user_name =: temp', temp = student_username)
     assignments = cursor.fetchall()
     return jsonify({

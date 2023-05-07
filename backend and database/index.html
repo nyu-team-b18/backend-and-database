@@ -44,21 +44,25 @@
 <!-- Add a background color and large text to the whole page -->
 <div class="w3-sand w3-grayscale w3-large">
 
-<div class="w3-display-container w3-center" id="content" hidden>
+<div class="w3-container w3-center" id="content" hidden>
 
     <div class="admin-content d-flex justify-evenly">
       <a style="width: 15%; aspect-ratio: 1 / 1;" class="w3-center card w3-black w3-hover-blue w3-margin" href="classlist.html">YOUR<br>CLASS</a>
       <a style="width: 15%; aspect-ratio: 1 / 1;" class="w3-center card w3-black w3-hover-blue w3-margin" href="profile.html">YOUR<br>PROFILE</a>
     </div>
 
+    <div id="reminder" class="student-content d-flex-col align-center" style="margin: 0; margin-bottom: 5px;">
+      <p class="w3-text-black w3-tag w3-white w3-padding" style="font-size:40px; border-radius: 10px;">YOU HAVE IMCOMPLETE ASSIGNMENTS</p>
+    </div>
+    
     <div class="student-content d-flex justify-evenly">
-        <a style="width: 15%; aspect-ratio: 1 / 1;" class="w3-center card w3-black w3-hover-blue w3-margin" href="#">RESUME STORY</a>
+        <a style="width: 15%; aspect-ratio: 1 / 1;" class="w3-center card w3-black w3-hover-blue w3-margin" href="gamePage.html">RESUME STORY</a>
         <a style="width: 15%; aspect-ratio: 1 / 1;" class="w3-center card w3-black w3-hover-blue w3-margin" href="studentAssignments.html">YOUR<br>CLASS</a>
         <a style="width: 15%; aspect-ratio: 1 / 1;" class="w3-center card w3-black w3-hover-blue w3-margin" href="profile.html">YOUR<br>PROFILE</a>
     </div>
 
     <div class="guest-content d-flex justify-evenly">
-        <a style="width: 15%; aspect-ratio: 1 / 1;" class="w3-center card w3-black w3-hover-blue w3-margin" href="classlist.html">YOUR<br>CLASS</a>
+        <a style="width: 15%; aspect-ratio: 1 / 1;" class="w3-center card w3-black w3-hover-blue w3-margin" href="gamePage.html">RESUME STORY</a>
         <a style="width: 15%; aspect-ratio: 1 / 1;" class="w3-center card w3-black w3-hover-blue w3-margin" href="profile.html">YOUR<br>PROFILE</a>
     </div>
 
@@ -110,7 +114,7 @@
     // Get the account type & update the page
     await fetch(LOCALHOST + SERVER_PORT + '/getAccountType')
     .then(response => response.json())
-    .then(data => {
+    .then(async function(data) {
       // Get respective content & hide all of it
       $admin = $(".admin-content")
       $student = $(".student-content")
@@ -127,6 +131,31 @@
       // Reveal the content corresponding to the user account type
       if(data['account-type'] === 'student') {
         $student.show()
+        
+        // Check if this student has incomplete assignments
+        await fetch(LOCALHOST + SERVER_PORT + '/getIncompleteAssignments')
+        .then(response => response.json())
+        .then(data => {
+          // Find assignment container
+          $reminder = $("#reminder")
+
+          // Load assignments
+          assignments = data['assignments']
+
+          // Some assignments are incomplete
+          if(assignments.length != 0) {
+            assignments.forEach(element => {
+              // Add new reminder
+              $reminder.append(
+                  `<p class="w3-tag w3-padding assignment-reminder">${element}</p>`
+              )
+            }) 
+          } else {
+            // Hide reminder
+            $reminder.hide()
+          }
+        })
+
       }
       else if(data['account-type'] === 'admin') {
         $admin.show()
@@ -150,7 +179,11 @@
     var url = window.location.href
     if(url.indexOf("?error=true") != -1)
         $("#status").show()
-    
+
+    $(".assignment-reminder").on('click', async function() {
+      window.location = LOCALHOST + CLIENT_PORT + '/assignmentDetails.html?assignment=' + $(this).text()
+    })
+      
     $("#login").on('submit', async function() {
         // Get all the forms elements and their values in one step
         let $username = $(this).find('input[name="username"]')
