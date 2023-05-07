@@ -386,7 +386,8 @@ def getIncompleteAssignments():
     incomplete = []
     for assignment in incomplete_raw:
         incomplete.append(assignment[0])
-        return jsonify({
+        
+    return jsonify({
         'assignments': incomplete
     })
 
@@ -497,15 +498,7 @@ def deleteAccount():
 
     cursor = conn.cursor()
     if account_type == 'admin':
-        # # TODO: Change all students under this admin to guest accounts
-        # #check if the student exists and is in thr group
-        # cursor.execute('SELECT student.user_name from student, admin WHERE student.student_group = admin.student_group'
-        #                'AND admin.user_name =: temp', temp = username)
-        # data = cursor.fetchall()
-        # if data:
-        #     for student in data:
-        #         cursor.execute('UPDATE student SET student_group = null WHERE user_name =: temp', temp = student[0])
-        #         conn.commit()
+        cursor.execute('DELETE FROM STUDENT WHERE student_group =: student_group', student_group=session['student-group'])
         cursor.execute('DELETE FROM admin WHERE user_name =: temp', temp = username)
         conn.commit()
         cursor.close()
@@ -562,7 +555,7 @@ def dropStudent():
     cursor = conn.cursor()
 
     #Remove student from current student group
-    cursor.execute('UPDATE student set student_group = null WHERE user_name =: temp', temp = student_username)
+    cursor.execute('DELETE FROM STUDENT WHERE user_name =: temp', temp = student_username)
     conn.commit()
     cursor.close()
 
