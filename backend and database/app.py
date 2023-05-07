@@ -386,11 +386,10 @@ def getIncompleteAssignments():
     incomplete = []
     for assignment in incomplete_raw:
         incomplete.append(assignment[0])
-        
+
     return jsonify({
         'assignments': incomplete
     })
-
 
 
 @app.route('/getProfile', methods=["GET"])
@@ -560,6 +559,111 @@ def dropStudent():
     cursor.close()
 
     return jsonify({})
+
+
+@app.route("/updatePlayerState", methods=["GET", "POST"])
+def updatePlayerState():
+    global session
+    username = session['username']
+
+    data = request.get_json()
+    player_x = data['playerX']
+    player_y = data['playerY']
+    player_health = data['playerHealth']
+    player_health_max = data['playerHealthMax']
+    player_stamina = data['playerStamina']
+    player_stamina_max = data['player_stamina_max']
+    l1_state = data['l1state']
+    kills = data['kills']
+    curr_kills = data['curr_kills']
+    key_used = data['key_used']
+    must_place = data['must_place']
+    has_chicks = data['has_chicks']
+    has_potion = data['has_potion']
+    game_level = data['level']
+    iUI = data['iUI']
+    inventory_id = data['inv_id']
+    inventory = data['inventory']
+
+    cursor = conn.cursor()
+    cursor.execute("""
+                    UPDATE PLAYER_STATE SET
+                    PLAYER_X =: player_x, PLAYER_Y =: player_y,
+                    PLAYER_HEALTH =: player_health, PLAYER_HEALTH_MAX =: player_health_max,
+                    PLAYER_STAMINA =: player_stamina, PLAYER_STAMINA_MAX =: player_stamina_max,
+                    L1_STATE =: l1_state,
+                    KILLS =: kills, CURR_KILLS =: curr_kills,
+                    KEY_USED =: key_used, MUST_PLACE =: must_place,
+                    HAS_CHICKS =: has_chicks, HAS_POTION =: has_potion,
+                    GAME_LEVEL =: game_level, I_UI =: iUI,
+                    INVENTORY_ID =: inventory_id
+                    WHERE USER_NAME =: username
+                    """, [player_x, player_y,
+                          player_health, player_health_max,
+                          player_stamina, player_stamina_max,
+                          l1_state,
+                          kills, curr_kills,
+                          key_used, must_place,
+                          has_chicks, has_potion,
+                          game_level, iUI,
+                          inventory_id, username])
+    cursor.execute("""
+                    UPDATE INVENTORY SET
+                    SLOT_ONE =: slot_one,
+                    SLOT_TWO =: slot_two,
+                    SLOT_THREE =: slot_three,
+                    SLOT_FOUR =: slot_four,
+                    SLOT_FIVE =: slot_five,
+                    SLOT_SIX =: slot_six,
+                    SLOT_SEVEN =: slot_seven,
+                    SLOT_EIGHT =: slot_eight,
+                    SLOT_NINE =: slot_nine,
+                    SLOT_TEN =: slot_ten
+                    WHERE USER_NAME =: username
+                    """, [inventory[0], inventory[1], inventory[2], inventory[3],
+                          inventory[4], inventory[5], inventory[6], inventory[7],
+                          inventory[8], inventory[9], username])
+    cursor.commit()
+    cursor.close()
+
+    return jsonify({})
+
+
+@app.route('/getPlayerState', methods=["GET"])
+def getPlayerState():
+    global session
+    username = session['username']
+
+    cursor = conn.cursor()
+    cursor.execute("""SELECT * FROM PLAYER_STATE WHERE USER_NAME =: username""", username=username)
+    data = cursor.fetchall()
+
+    json = {
+        "playerX": data[1], # First column is the username
+        "playerY": data[2],
+        "playerHealth": data[3],
+        "playerHealthMax": data[4],
+        "playerStamina": data[5],
+        "playerStaminaMax": data[6],
+        "l1state": data[7],
+        "kills": data[8],
+        "curr_kills": data[9],
+        "key_used": data[10],
+        "must_place": data[11],
+        "has_chicks": data[12],
+        "has_potion": data[13],
+        "level": data[14],
+        "iUI": data[15],
+        "inv_id": data[16],
+    }
+
+    cursor.execute("SELECT * FROM INVENTORY WHERE USER_NAME =: username", username=username)
+    inventory = list(cursor.fetchall())[1:]
+    cursor.close()
+
+    json['inventory'] = inventory
+
+    return jsonify(json)
 
 
 app.secret_key = 'some other random key'
