@@ -518,10 +518,12 @@ def getStudentInformation():
     student_username = request.args.get('username')
     cursor = conn.cursor()
     # Get student information
-    cursor.execute('SELECT * FROM STUDENT where user_name =: temp', temp = student_username)
+    cursor.execute('SELECT email, name, bio FROM STUDENT where user_name =: temp', temp = student_username)
     data = cursor.fetchone()
 
     email = data[0]
+    name = data[1]
+    bio = data[2]
 
     # Get all completed assignments
     # TODO: Add a query that gets all assignment titles completed by this student
@@ -530,6 +532,8 @@ def getStudentInformation():
     return jsonify({
         'username': student_username,
         'email': email,
+        'name': name,
+        'bio': bio,
         'assignments': assignments
     })
 
