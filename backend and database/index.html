@@ -25,15 +25,15 @@
 <header style="min-height: 50%" class="bgimg w3-display-container w3-grayscale-min" id="home" hidden>
 
   <div class="admin-content w3-display-middle w3-center d-flex align-center">
-    <span class="w3-text-white" style="font-size:75px">WELCOME BACK,<br>ADMIN</span>
+    <span class="w3-text-white welcome" style="font-size:75px">WELCOME BACK,<br>ADMIN</span>
   </div>
 
   <div class="student-content w3-display-middle w3-center d-flex align-center">
-    <span class="w3-text-white" style="font-size:75px">WELCOME BACK,<br>STUDENT</span>
+    <span class="w3-text-white welcome" style="font-size:75px">WELCOME BACK,<br>STUDENT</span>
   </div>
 
   <div class="guest-content w3-display-middle w3-center d-flex align-center">
-    <span class="w3-text-white" style="font-size:75px">WELCOME BACK<br>GUEST</span>
+    <span class="w3-text-white welcome" style="font-size:75px">WELCOME BACK<br>GUEST</span>
   </div>
 
   <div class="none-content w3-display-middle w3-center">
@@ -126,8 +126,6 @@
       $guest.hide()
       $none.hide()
       
-      console.log(data['account-type'])
-
       // Reveal the content corresponding to the user account type
       if(data['account-type'] === 'student') {
         $student.show()
@@ -168,6 +166,8 @@
         $about.show()
         $none.show()
       }
+
+      $(".welcome").html(`WELCOME BACK<br>${data['name']}`)
 
       // Reveal the page
       $("#home").show()

@@ -68,9 +68,9 @@ def verifyRegistration():
             })
 
         # Create the account
-        cursor.execute('INSERT INTO admin (EMAIL, USER_NAME, PASSWORD, STUDENT_GROUP) '
-                        'VALUES(:email, :username, :password, :student_group)',
-                        [email, username, password, student_group])
+        cursor.execute('INSERT INTO admin (EMAIL, USER_NAME, PASSWORD, STUDENT_GROUP, NAME) '
+                        'VALUES(:email, :username, :password, :student_group, :name)',
+                        [email, username, password, student_group, name])
         conn.commit()
         cursor.close()
 
@@ -114,9 +114,9 @@ def verifyRegistration():
             })
 
         # Create the account
-        cursor.execute('INSERT INTO student (EMAIL, USER_NAME, PASSWORD, STUDENT_GROUP, PROGRESS, ASSIGNMENT) '
-                        'VALUES(:email, :username, :password, :student_group, null, null)',
-                        [email, username, password, student_group])
+        cursor.execute('INSERT INTO student (EMAIL, USER_NAME, PASSWORD, STUDENT_GROUP, PROGRESS, ASSIGNMENT, NAME) '
+                        'VALUES(:email, :username, :password, :student_group, null, null, :name)',
+                        [email, username, password, student_group, name])
         conn.commit()
         cursor.close()
 
@@ -145,9 +145,9 @@ def verifyRegistration():
             })  
 
         # Create the account
-        cursor.execute('INSERT INTO guest (EMAIL, USER_NAME, PASSWORD, PROGRESS) '
-                        'VALUES(:email, :username, :password, null)',
-                        [email, username, password])
+        cursor.execute('INSERT INTO guest (EMAIL, USER_NAME, PASSWORD, PROGRESS, NAME) '
+                        'VALUES(:email, :username, :password, null, :name)',
+                        [email, username, password, name])
         
         # Begin new session
         session['username'] = username
@@ -183,9 +183,11 @@ def verifyLogin():
     if data:
         cursor.close()
         student_group_index = 3
+        name_index = 4
         session['account-type'] = 'admin'
         session['username'] = data[username_index]
         session['student-group'] = data[student_group_index]
+        session['name'] = data[name_index]
         
         return jsonify({}), 200
     
@@ -197,9 +199,11 @@ def verifyLogin():
     if data:
         cursor.close()
         student_group_index = 5
+        name_index = 6
         session['account-type'] = 'student'
         session['username'] = data[username_index]
         session['student-group'] = data[student_group_index]
+        session['name'] = data[name_index]
 
         return jsonify({}), 200
 
@@ -210,8 +214,10 @@ def verifyLogin():
 
     if data:
         cursor.close()
+        name_index = 4
         session['account-type'] = 'guest'
         session['username'] = data[username_index]
+        session['name'] = data[name_index]
         return jsonify({}), 200
 
     # Login failed
@@ -272,12 +278,18 @@ def getStudents():
 def getAccountType():
     global session
 
-    # Get account type
+    # Get account type & name
     try:
         account_type = session['account-type']
+        name = session['name']
     except:
         account_type = 'none'
-    return jsonify({'account-type': account_type})
+        name = 'none'
+
+    return jsonify({
+        'account-type': account_type,
+        'name': name
+    })
 
 
 @app.route('/getAssignmentDetails', methods=["GET"])
@@ -383,42 +395,47 @@ def getProfile():
     if account_type == 'student':
         # Get the account details
 
-        cursor.execute('SELECT user_name, email, progress from student where user_name =: temp', temp=username)
+        cursor.execute('SELECT user_name, email, progress, name, bio from student where user_name =: temp', temp=username)
         data = cursor.fetchone()
         error = None
         cursor.close()
         if (data):
-            print(data)
             details = {
                 'username': data[0],
                 'email': data[1],
-                'progress': data[2]
+                'progress': data[2],
+                'name': data[3],
+                'bio': data[4]
             }
     elif account_type == 'admin':
         # Get the account details
 
-        cursor.execute('SELECT user_name, email from admin where user_name =: temp', temp=username)
+        cursor.execute('SELECT user_name, email, name, bio from admin where user_name =: temp', temp=username)
         data = cursor.fetchone()
-        error = None
+        data = list(data)
+        for ndx in range(len(data)):
+            if data[ndx] is None: data[ndx] = 'None'
         cursor.close()
         if (data):
-            print(data)
-            details = {
-                'username': data[0],
-                'email': data[1]
-            }
-    else:
-        # Get the account details
-        cursor.execute('SELECT user_name, email, progress from guest where user_name =: temp', temp=username)
-        data = cursor.fetchone()
-        error = None
-        cursor.close()
-        if (data):
-            print(data)
             details = {
                 'username': data[0],
                 'email': data[1],
-                'progress': data[2]
+                'name': data[2],
+                'bio': data[3]
+            }
+    else:
+        # Get the account details
+        cursor.execute('SELECT user_name, email, progress, name, bio from guest where user_name =: temp', temp=username)
+        data = cursor.fetchone()
+        error = None
+        cursor.close()
+        if (data):
+            details = {
+                'username': data[0],
+                'email': data[1],
+                'progress': data[2],
+                'name': data[3],
+                'bio': data[4]
             }
 
     return jsonify(details)
@@ -432,56 +449,32 @@ def updateProfile():
     username = session['username']
 
     data = request.get_json()
-    new_email, new_password = data['email'], data['password']
+    new_email = data['email']
+    new_name = data['name']
+    new_bio = data['bio']
 
     cursor = conn.cursor()
 
     if account_type == 'student':
-        # Get the account details
-        # TODO: Add a query to update profile information from students
-        # check if email is in use
-        cursor.execute('SELECT * FROM student WHERE email =: temp', temp=new_email)
-        data = cursor.fetchone()
-        error = None
-        if (data):
-            error = "Email already in use"
-            return error
-
-        else:
-            cursor.execute('update STUDENT set email =: new_email, password =: new_password'
-                           ' where user_name =: username', [new_email, new_password, username])
-            conn.commit()
-            cursor.close()
-
+        # Update the account details
+        cursor.execute('update STUDENT set email =: new_email, name =: new_name, bio =: new_bio'
+                        ' where user_name =: username', [new_email, new_name, new_bio, username])
     elif account_type == 'admin':
-        # Get the account details
-        # TODO: Add a query to update profile information from admins
-        cursor.execute('SELECT * FROM admin WHERE email =: temp', temp=new_email)
-        data = cursor.fetchone()
-        error = None
-        if (data):
-            error = "Email already in use"
-            return error
-
-        else:
-            cursor.execute('update ADMIN set email =: new_email, password =: new_password'
-                           ' where user_name =: username', [new_email, new_password, username])
-            conn.commit()
-            cursor.close()
+        # Update the account details
+        cursor.execute('update ADMIN set email =: new_email, name =: new_name, bio =: new_bio'
+                        ' where user_name =: username', [new_email, new_name, new_bio, username])
     else:
         # Get the account details
-        cursor.execute('SELECT * FROM GUEST WHERE email =: temp', temp=new_email)
-        data = cursor.fetchone()
-        error = None
-        if (data):
-            error = "Email already in use"
-            return error
+        print(new_bio)
+        cursor.execute('update GUEST set email =: new_email, name =: new_name, bio =: new_bio'
+                        ' where user_name =: username', [new_email, new_name, new_bio, username])
+    
 
-        else:
-            cursor.execute('update GUEST set email =: new_email, password =: new_password'
-                           ' where user_name =: username', [new_email, new_password, username])
-            conn.commit()
-            cursor.close()
+    session['email'] = new_email
+    session['name'] = new_name
+
+    conn.commit()
+    cursor.close()
 
     return jsonify({})
 
