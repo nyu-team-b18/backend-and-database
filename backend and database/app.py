@@ -1,6 +1,7 @@
 from flask import Flask, request, redirect, jsonify
 from flask_cors import CORS
 import oracledb
+import random
 
 app = Flask(__name__)
 CORS(app)
@@ -117,6 +118,13 @@ def verifyRegistration():
         cursor.execute('INSERT INTO student (EMAIL, USER_NAME, PASSWORD, STUDENT_GROUP, PROGRESS, ASSIGNMENT, NAME) '
                         'VALUES(:email, :username, :password, :student_group, null, null, :name)',
                         [email, username, password, student_group, name])
+        
+        cursor.execute("""INSERT INTO PLAYER_STATE (USER_NAME, PLAYER_X, PLAYER_Y, PLAYER_STAMINA, PLAYER_STAMINA_MAX,
+                            L1_STATE, KILLS, CURR_KILLS, KEY_USED, MUST_PLACE, HAS_CHICKS, HAS_POTION, GAME_LEVEL,
+                            ROOM, INVENTORY) VALUES(:username, :player_x, :player_y, :player_stamina, :player_stamina_max,
+                            :l1_state, :kills, :curr_kills, :key_used, :must_place, :has_chicks, :has_potion, :game_level,
+                            :room, :inventory)""",
+                            [username, 0, 0, 5, 5, "pregame", random.randint(1, 20), -1, 0, "1", "0", "0", 0, 0, ""])
         conn.commit()
         cursor.close()
 
@@ -148,6 +156,13 @@ def verifyRegistration():
         cursor.execute('INSERT INTO guest (EMAIL, USER_NAME, PASSWORD, PROGRESS, NAME) '
                         'VALUES(:email, :username, :password, null, :name)',
                         [email, username, password, name])
+
+        cursor.execute("""INSERT INTO PLAYER_STATE (USER_NAME, PLAYER_X, PLAYER_Y, PLAYER_STAMINA, PLAYER_STAMINA_MAX,
+                            L1_STATE, KILLS, CURR_KILLS, KEY_USED, MUST_PLACE, HAS_CHICKS, HAS_POTION, GAME_LEVEL,
+                            ROOM, INVENTORY) VALUES(:username, :player_x, :player_y, :player_stamina, :player_stamina_max,
+                            :l1_state, :kills, :curr_kills, :key_used, :must_place, :has_chicks, :has_potion, :game_level,
+                            :room, :inventory)""",
+                            [username, 0, 0, 5, 5, "pregame", random.randint(1, 20), -1, 0, "1", "0", "0", 0, 0, ""])
         
         # Begin new session
         session['username'] = username
@@ -497,11 +512,15 @@ def deleteAccount():
 
     cursor = conn.cursor()
     if account_type == 'admin':
+        cursor.execute("""DELETE FROM PLAYER_STATE WHERE USER_NAME IN 
+                       (SELECT USER_NAME FROM STUDENT WHERE STUDENT_GROUP =: student_group)""",
+                       student_group = session['student-group'])
         cursor.execute('DELETE FROM STUDENT WHERE student_group =: student_group', student_group=session['student-group'])
         cursor.execute('DELETE FROM admin WHERE user_name =: temp', temp = username)
         conn.commit()
         cursor.close()
     elif account_type == 'guest':
+        cursor.execute('DELETE FROM PLAYER_STATE WHERE USER_NAME =: temp', temp = username)
         cursor.execute('DELETE FROM guest WHERE user_name =: temp', temp = username)
         conn.commit()
         cursor.close()
@@ -567,12 +586,11 @@ def updatePlayerState():
     username = session['username']
 
     data = request.get_json()
+    room = data['room']
     player_x = data['playerX']
     player_y = data['playerY']
-    player_health = data['playerHealth']
-    player_health_max = data['playerHealthMax']
     player_stamina = data['playerStamina']
-    player_stamina_max = data['player_stamina_max']
+    player_stamina_max = data['playerStaminaMax']
     l1_state = data['l1state']
     kills = data['kills']
     curr_kills = data['curr_kills']
@@ -581,49 +599,31 @@ def updatePlayerState():
     has_chicks = data['has_chicks']
     has_potion = data['has_potion']
     game_level = data['level']
-    iUI = data['iUI']
-    inventory_id = data['inv_id']
     inventory = data['inventory']
 
     cursor = conn.cursor()
     cursor.execute("""
                     UPDATE PLAYER_STATE SET
                     PLAYER_X =: player_x, PLAYER_Y =: player_y,
-                    PLAYER_HEALTH =: player_health, PLAYER_HEALTH_MAX =: player_health_max,
                     PLAYER_STAMINA =: player_stamina, PLAYER_STAMINA_MAX =: player_stamina_max,
                     L1_STATE =: l1_state,
                     KILLS =: kills, CURR_KILLS =: curr_kills,
                     KEY_USED =: key_used, MUST_PLACE =: must_place,
                     HAS_CHICKS =: has_chicks, HAS_POTION =: has_potion,
-                    GAME_LEVEL =: game_level, I_UI =: iUI,
-                    INVENTORY_ID =: inventory_id
+                    GAME_LEVEL =: game_level,
+                    ROOM =: room, INVENTORY =: inventory
                     WHERE USER_NAME =: username
                     """, [player_x, player_y,
-                          player_health, player_health_max,
                           player_stamina, player_stamina_max,
                           l1_state,
                           kills, curr_kills,
                           key_used, must_place,
                           has_chicks, has_potion,
-                          game_level, iUI,
-                          inventory_id, username])
-    cursor.execute("""
-                    UPDATE INVENTORY SET
-                    SLOT_ONE =: slot_one,
-                    SLOT_TWO =: slot_two,
-                    SLOT_THREE =: slot_three,
-                    SLOT_FOUR =: slot_four,
-                    SLOT_FIVE =: slot_five,
-                    SLOT_SIX =: slot_six,
-                    SLOT_SEVEN =: slot_seven,
-                    SLOT_EIGHT =: slot_eight,
-                    SLOT_NINE =: slot_nine,
-                    SLOT_TEN =: slot_ten
-                    WHERE USER_NAME =: username
-                    """, [inventory[0], inventory[1], inventory[2], inventory[3],
-                          inventory[4], inventory[5], inventory[6], inventory[7],
-                          inventory[8], inventory[9], username])
-    cursor.commit()
+                          game_level,
+                          room, inventory,
+                          username])
+    
+    conn.commit()
     cursor.close()
 
     return jsonify({})
@@ -636,32 +636,25 @@ def getPlayerState():
 
     cursor = conn.cursor()
     cursor.execute("""SELECT * FROM PLAYER_STATE WHERE USER_NAME =: username""", username=username)
-    data = cursor.fetchall()
+    data = cursor.fetchall()[0]
+    cursor.close()
 
     json = {
         "playerX": data[1], # First column is the username
         "playerY": data[2],
-        "playerHealth": data[3],
-        "playerHealthMax": data[4],
-        "playerStamina": data[5],
-        "playerStaminaMax": data[6],
-        "l1state": data[7],
-        "kills": data[8],
-        "curr_kills": data[9],
-        "key_used": data[10],
-        "must_place": data[11],
-        "has_chicks": data[12],
-        "has_potion": data[13],
-        "level": data[14],
-        "iUI": data[15],
-        "inv_id": data[16],
+        "playerStamina": data[3],
+        "playerStaminaMax": data[4],
+        "l1state": data[5],
+        "kills": data[6],
+        "curr_kills": data[7],
+        "key_used": data[8],
+        "must_place": data[9],
+        "has_chicks": data[10],
+        "has_potion": data[11],
+        "level": data[12],
+        'room': data[13],
+        'inventory': data[14]
     }
-
-    cursor.execute("SELECT * FROM INVENTORY WHERE USER_NAME =: username", username=username)
-    inventory = list(cursor.fetchall())[1:]
-    cursor.close()
-
-    json['inventory'] = inventory
 
     return jsonify(json)
 
