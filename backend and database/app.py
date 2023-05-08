@@ -124,7 +124,7 @@ def verifyRegistration():
                             ROOM, INVENTORY) VALUES(:username, :player_x, :player_y, :player_stamina, :player_stamina_max,
                             :l1_state, :kills, :curr_kills, :key_used, :must_place, :has_chicks, :has_potion, :game_level,
                             :room, :inventory)""",
-                            [username, 0, 0, 5, 5, "pregame", random.randint(1, 20), -1, 0, "1", "0", "0", 0, 0, ""])
+                            [username, 0, 0, 5, 5, "pregame", random.randint(1, 2), -1, 0, "1", "0", "0", 0, 0, ""])
         conn.commit()
         cursor.close()
 
